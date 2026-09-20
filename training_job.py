@@ -23,7 +23,6 @@ def run(
         graph_labels,
     ) = lp.load_dataset(dataset_name, stratification=stratification, device=device)
     regularization_types = ["vanilla", "batch_norm", "l2", "dropout"]
-    regularization_types = ["dropout"]
     for regularization_type in regularization_types:
         print(f"\n########## Training {regularization_type} ##########\n")
 
