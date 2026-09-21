@@ -26,6 +26,33 @@ def set_seed(seed_value=42):
     random.seed(seed_value)
     np.random.seed(seed_value)
 
+def _kmedoids_pam(distance_matrix, n_clusters, random_state=None, max_iter=300):
+    """Minimal PAM (Partitioning Around Medoids) k-medoids implementation
+    for a precomputed distance matrix, replacing sklearn_extra.cluster.KMedoids."""
+    rng = np.random.RandomState(random_state)
+    n = distance_matrix.shape[0]
+    medoid_indices = rng.choice(n, n_clusters, replace=False)
+
+    for _ in range(max_iter):
+        # Assign each point to nearest medoid
+        labels = np.argmin(distance_matrix[:, medoid_indices], axis=1)
+
+        new_medoid_indices = medoid_indices.copy()
+        for k in range(n_clusters):
+            cluster_points = np.where(labels == k)[0]
+            if len(cluster_points) == 0:
+                continue
+            # Choose the point minimizing total distance to others in cluster
+            sub_dist = distance_matrix[np.ix_(cluster_points, cluster_points)]
+            costs = sub_dist.sum(axis=1)
+            new_medoid_indices[k] = cluster_points[np.argmin(costs)]
+
+        if np.array_equal(new_medoid_indices, medoid_indices):
+            break
+        medoid_indices = new_medoid_indices
+
+    labels = np.argmin(distance_matrix[:, medoid_indices], axis=1)
+    return labels
 
 def correlation_matrix_to_persistence(correlation_matrix, output_type="PD"):
     """Converts a correlation matrix to a persistence diagram or persistence image (H1).
@@ -220,15 +247,7 @@ def k_medroid_clustering(distance_matrix, n_clusters, n_networks_per_cluster):
 
     scores = np.zeros(iterations)
     for j in range(iterations):
-        kmedoids = KMedoids(
-            n_clusters=n_clusters,
-            metric="precomputed",
-            init="random",
-            method="pam",
-            random_state=j,
-        )
-        kmedoids.fit(distance_matrix)
-        labels_pred = kmedoids.labels_
+        labels_pred = _kmedoids_pam(distance_matrix, n_clusters, random_state=j)
         scores[j] = tc.purity_score(labels_true, labels_pred)
         print("Purity score: ", scores[j])
         print("Contingency matrix: ")
