@@ -83,23 +83,12 @@ class TopClustering:
                 # Determine data points belonging to each cluster
                 cluster_members = X[assigned_centroids == cluster]
 
+                # Skip update if the cluster has no members this iteration
+                if cluster_members.shape[0] == 0:
+                    continue
+
                 # Compute the sample mean and top. centroid of the cluster
-                for cluster in range(self.n_clusters):
-                    # Previous iteration centroid
-                    prev_centroid = np.zeros((n_node, n_node))
-                    prev_centroid[np.triu_indices(
-                        prev_centroid.shape[0],
-                        k=1)] = self.centroids[cluster][:n_edges]
-                
-                    # Determine data points belonging to each cluster
-                    cluster_members = X[assigned_centroids == cluster]
-                
-                    # Skip update if the cluster has no members this iteration
-                    if cluster_members.shape[0] == 0:
-                        continue
-                
-                    # Compute the sample mean and top. centroid of the cluster
-                    cc = cluster_members.mean(axis=0)
+                cc = cluster_members.mean(axis=0)
                 sample_mean = np.zeros((n_node, n_node))
                 sample_mean[np.triu_indices(sample_mean.shape[0],
                                             k=1)] = cc[:n_edges]
