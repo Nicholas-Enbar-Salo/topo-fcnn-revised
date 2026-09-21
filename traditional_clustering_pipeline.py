@@ -16,7 +16,6 @@ from persim import (
 )
 from sklearn.cluster import KMeans
 from sklearn.metrics.cluster import contingency_matrix
-from sklearn_extra.cluster import KMedoids
 import clustering_pipeline as cp
 import models as model_architectures
 import top_clustering as tc
